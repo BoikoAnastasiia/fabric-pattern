@@ -1,0 +1,18 @@
+.App {
+  font-family: sans-serif;
+  text-align: center;
+  padding: 35px;
+}
+
+.canvas_container {
+  background-color: var(--main_color_20);
+  margin-top: 20px;
+}
+
+.input_container {
+  display: flex;
+}
+
+label {
+  text-align: left;
+}
