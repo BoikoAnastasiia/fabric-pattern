@@ -8,6 +8,7 @@ const CanvasWithCirclePattern = ({ imageUrl }) => {
   const [circle, setCircle] = useState(null);
   const [editableImage, setEditableImage] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [pattern, setPattern] = useState(null);
 
   useEffect(() => {
     window.fabricCanvas = initializeFabric({
@@ -38,16 +39,16 @@ const CanvasWithCirclePattern = ({ imageUrl }) => {
           top: 150,
           fill: newPattern,
           id: 'circle',
-          selectable: false,
         });
         canvas.add(newCircle);
+        setPattern(newPattern);
         setCircle(newCircle);
       },
       { crossOrigin: 'anonymous' }
     );
 
     return () => {
-      CanvasCleaner(canvas);
+      CanvasCleaner(window.fabricCanvas);
     };
   }, [imageUrl]);
 
@@ -55,16 +56,16 @@ const CanvasWithCirclePattern = ({ imageUrl }) => {
     const canvas = window.fabricCanvas;
 
     if (!isEditing) {
-      // Hide the circle and show the editable image
       circle.set({ visible: false });
       fabric.Image.fromURL(
         imageUrl,
         (img) => {
+          console.log(pattern);
           const newEditableImage = new fabric.Image(img.getElement(), {
             left: circle.left,
             top: circle.top,
-            scaleX: circle.scaleX,
-            scaleY: circle.scaleY,
+            scaleX: pattern.source.width / img.getScaledWidth() || 1,
+            scaleY: pattern.source.height / img.getScaledHeight() || 1,
             angle: circle.angle,
             selectable: true,
             hasControls: true,
@@ -87,11 +88,13 @@ const CanvasWithCirclePattern = ({ imageUrl }) => {
           height: editableImage.height * editableImage.scaleY,
         });
         patternSourceCanvas.renderAll();
-
+        patternSourceCanvas.setZoom(editableImage.scaleX);
         // Update the circle's pattern and make it visible again
         const updatedPattern = new fabric.Pattern({
           source: patternSourceCanvas.getElement(),
           repeat: 'no-repeat',
+          offsetX: -editableImage.left, // Use negative offsets to counter the movement of the image
+          offsetY: -editableImage.top,
         });
         circle.set({ fill: updatedPattern, visible: true });
 
